@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import nibabel as nib
 from nilearn import plotting
-import utils.custom_colormaps
+import utils.custom_colormaps as custom_colormaps
 from utils.helper_funcs import *
 import utils.array_operations as aop
 import utils.str_methods as strm

@@ -56,7 +56,7 @@ def _parse_args():
                         help="Centiloid value for the scan")
     parser.add_argument("-vr", type=str, choices=["Elevated", "Non-elevated"], required=False,
                         help="Visual read of the scan (choices: %(choices)s)")
-    parser.add_argument("-t", type=str, default="templates/",
+    parser.add_argument("-t", type=str, default=op.join(op.dirname(__file__), "templates"),
                         help="Path to the template directory for merging multislice images (default: %(default)s)")
     parser.add_argument("-z", type=int, nargs="+", default=[-50, -44, -38, -32, -26, -20, -14, -8, -2, 4, 10, 16, 22, 28, 34, 40],
                         help="List of image slices to show along the z-axis (default: %(default)s)")
