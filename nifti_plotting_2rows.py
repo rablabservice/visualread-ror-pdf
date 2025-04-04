@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import os.path as op
 import warnings
@@ -50,7 +48,7 @@ def create_multislice(
     facecolor=None,
     fontcolor=None,
     font={"tick": 12, "label": 14, "title": 16, "annot": 14},
-    figsize=(13.33, 7.5),
+    figsize=(13.29, 7.5),
     dpi=300,
     pad_figure=True,
     fig=None,
@@ -220,7 +218,7 @@ def create_multislice(
     if mrif is not None:
         nops.find_gzip(mrif, raise_error=True)
 
-# ----------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------
     # Configure plot parameters.
 
     # Get min and max values for the colormap using autoscale
@@ -276,9 +274,9 @@ def create_multislice(
             mri = nib.Nifti1Image(mri_dat, mri.affine)
             mri, *_ = nops.recenter_nii(mri)
 
-    # *** Define slice parameters before creating the figure ***
-    nrows = 2  # Number of rows
-    ncols = 8  # Calculate number of columns
+    # Define slice parameters before creating the figure.
+    nrows = 2  
+    ncols = 8  
    
     # Make the plot.
     plt.close("all")
@@ -309,6 +307,7 @@ def create_multislice(
     else:
         _colorbar = False
 
+    # ---------------------------------------------------------
     # Call the plotting function for each slice.
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -320,7 +319,7 @@ def create_multislice(
             display = plotting.plot_img(
                 mri,
                 cut_coords=[coord],  # Plot each slice individually
-                display_mode=display_mode,  # Axial slices
+                display_mode=display_mode, 
                 annotate=False,
                 draw_cross=draw_cross,
                 black_bg=False,
@@ -332,7 +331,7 @@ def create_multislice(
                 figure=fig,
                 axes=ax[row, col],  # Use the corresponding subplot
             )
-            display.add_overlay(
+            display.add_overlay( # Add the PET overlay
                 pet,
                 threshold=0,
                 alpha=0.7,
@@ -344,7 +343,7 @@ def create_multislice(
             _ = plotting.plot_img(
                 pet,
                 cut_coords=[coord],  # Plot each slice individually
-                display_mode=display_mode,  # Axial slices
+                display_mode=display_mode,  
                 annotate=annotate,
                 draw_cross=draw_cross,
                 black_bg=False,
@@ -371,6 +370,7 @@ def create_multislice(
             ax[row, col].set_facecolor('none')  # Set facecolor to None for all axes
             ax[row, col].axis("off")  # Optionally, turn off the axis if needed
 
+    # ----------------------------------------------------------
     # Add the colorbar.
     if colorbar:
         norm = plt.Normalize(vmin=vmin, vmax=vmax)
@@ -414,7 +414,7 @@ def create_multislice(
         # Modify the 'bottom' position to move it up
         cbar.ax.set_position([pos[0], pos[1] + 0.02, pos[2], pos[3]])
 
-
+    # -----------------------------------------------------------
     # Add the title.
     if title is None:
         #title = op.basename(imagef) + "\n"
@@ -429,10 +429,10 @@ def create_multislice(
                 title += f"Amyloid cortical mask SUVR: {suvr}\n"
             elif tracer == 'ftp' or tracer == 'mk6240':
                 title += f"Temporal meta-ROI SUVR: {suvr}\n"
-        if centiloid:
-            title += f"Centiloid: {centiloid}\n"  # Fixed indentation here
         if visual_read:
             title += f"Expert visual read: {visual_read}\n"
+        if centiloid:
+            title += f"Centiloid: {centiloid}\n"  # Fixed indentation here
         if hide_cbar_values:
             title += "SUVR range: {:.1f}-{:.1f}".format(vmin, vmax)
 
@@ -445,7 +445,7 @@ def create_multislice(
     )
     ax[0, 0].set_position([0.1, 0.63, 0.3, 0.1])
     ax[0, 0].set_facecolor("none") 
-    
+
     # Add L/R text
     ax[0, 0].text(
         x=0.08, y=0.68, s="L",
@@ -460,15 +460,12 @@ def create_multislice(
         #horizontalalignment="center"
     )
 
-
     # Set the background color.
     for iax in range(len(ax)):
         _ax = ax[iax,0]
         _ax.set_facecolor(facecolor)
     fig.patch.set_facecolor(facecolor)
     
-  
-
     # Get rid of lines at the top and bottom of the figure.
     #if pad_figure:
     rows_to_disable = [0, 1]  # Specify rows as a list
@@ -476,9 +473,8 @@ def create_multislice(
     for iax in rows_to_disable:
         for jax in cols_to_disable:
             ax[iax, jax].axis("off")
-    #plt.show()
-    
 
+    # -----------------------------------------------------------------------------
     # Save the figure as a pdf.
     
     if save_fig:
@@ -500,7 +496,8 @@ def create_multislice(
 
     return fig, outfile
 
-
+# Get the tracer defaults for colormap, vmin, vmax, etc.
+# based on the tracer name.
 def get_tracer_defaults(
     tracer, petf=None, vmin=None, vmax=None, cmap=None, facecolor=None, fontcolor=None
 ):
@@ -551,7 +548,7 @@ def get_tracer_defaults(
         if vmin is None:
             vmin = 0
         if vmax is None:
-            vmax = 2.5
+            vmax = 3.0
         if cmap is None:
             cmap = "nih"
         if facecolor is None:
@@ -659,4 +656,3 @@ class TextFormatter(argparse.RawTextHelpFormatter):
             # omit the long line wrapping code
         # prefix with 'usage:'
         return "%s%s\n\n" % (prefix, usage)
-

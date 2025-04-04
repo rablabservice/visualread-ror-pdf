@@ -14,6 +14,7 @@ def run_cmd(cmd):
     return process.returncode
 
 # Merge Multislice Function
+## This function merges the multislice images with a template PDF using qpdf.
 def merge_multislice(infile, template_dir, tracer, remove_infile=False, overwrite=False, verbose=True):
     assert infile.endswith(".pdf")
     outfile = add_presuf(infile, suffix="_merged")
@@ -32,7 +33,8 @@ def merge_multislice(infile, template_dir, tracer, remove_infile=False, overwrit
             print(f"Removed {infile}")
     return outfile
 
-# Argument Parsing
+# Argument Parsing Function
+## This function sets up the command-line argument parser for the script.
 def _parse_args():
     parser = argparse.ArgumentParser(description="Create PDF multislice for RoR.")
     parser.add_argument("-pet", "--petf", type=str, required=True,
@@ -40,10 +42,10 @@ def _parse_args():
     parser.add_argument("-mri", "--mrif", type=str, required=False,
                         help="Path to the input affine transformed MRI scan")
     parser.add_argument("-s", "--subject", type=str, required=True,
-                        help="Subject ID (e.g., 001)")
+                        help="Subject ID (e.g., 001_S_001)")
     parser.add_argument("-d", "--scan_date", type=str, required=True,
                         help="Date of the scan (e.g., 2023-01-01)")
-    parser.add_argument("-m", "--modality", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FTP", "MK6240", "PI2620","MRI-T1"], required=True,
+    parser.add_argument("-m", "--modality", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FTP", "MK6240", "PI2620", "MRI-T1"], required=True,
                         help="Modality of the input scan (choices: %(choices)s)")
     parser.add_argument("-v", "--SUVR", type=str, required=False,
                         help="Quantification in SUVR")
@@ -51,7 +53,7 @@ def _parse_args():
                         help="Centiloid value for the scan")
     parser.add_argument("-vr", "--visual_read", type=str, choices=["Elevated", "Non-elevated"], required=False,
                         help="Visual read of the scan (choices: %(choices)s)")
-    parser.add_argument("-t", "--template_dir", type=str, required=True, default="/mnt/coredata/projects/scripts/visualread-ror-pdf/templates/",
+    parser.add_argument("-t", "--template_dir", type=str, default="templates/",
                         help="Path to the template directory for merging multislice images (default: %(default)s)")
     parser.add_argument("-z", "--slices", type=int, nargs="+", default=[-50, -44, -38, -32, -26, -20, -14, -8, -2, 4, 10, 16, 22, 28, 34, 40],
                         help="List of image slices to show along the z-axis (default: %(default)s)")
@@ -72,7 +74,8 @@ def _parse_args():
     parser.add_argument("-q", "--quiet", action="store_true", help="Run without printing output")
     return parser.parse_args()
 
-# Main Script
+# Main Script to run the functions
+## It processes the command-line arguments and calls the functions to create and merge multislice images.
 if __name__ == "__main__":
     args = _parse_args()
     verbose = not args.quiet
