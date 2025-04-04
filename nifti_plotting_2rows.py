@@ -511,6 +511,7 @@ def get_tracer_defaults(
         "fdg": "[18F]FDG",
         "flute": "[18F]Flutemetamol",
         "mk6240": "[18F]MK6240",
+        "pi2620": "[18F]PI2620",
     }
     if tracer is None:
         tracer = ""
@@ -604,6 +605,17 @@ def get_tracer_defaults(
             vmin = 0
         if vmax is None:
             vmax = 2.5
+        if cmap is None:
+            cmap = "nih"
+        if facecolor is None:
+            facecolor = "k"
+        if fontcolor is None:
+            fontcolor = "w"
+    elif tracer == "pi2620":
+        if vmin is None:
+            vmin = 0
+        if vmax is None:
+            vmax = 4.5
         if cmap is None:
             cmap = "nih"
         if facecolor is None:
