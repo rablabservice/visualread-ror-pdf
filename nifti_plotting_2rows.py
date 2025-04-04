@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import nibabel as nib
 from nilearn import plotting
-import custom_colormaps
-from general.basic.helper_funcs import *
-import general.array.array_operations as aop
-import general.basic.str_methods as strm
-import general.nifti.nifti_ops as nops
+import utils.custom_colormaps
+from utils.helper_funcs import *
+import utils.array_operations as aop
+import utils.str_methods as strm
+import utils.nifti_ops as nops
 
 mpl.rcParams["pdf.fonttype"] = 42
 
