@@ -36,26 +36,29 @@ def merge_multislice(infile, template_dir, tracer, remove_infile=False, overwrit
 # Argument Parsing Function
 ## This function sets up the command-line argument parser for the script.
 def _parse_args():
-    parser = argparse.ArgumentParser(description="Create PDF multislice for RoR.")
-    parser.add_argument("-pet", "--petf", type=str, required=True,
+    parser = argparse.ArgumentParser(
+        description="""Create PDF multislice for RoR.""",
+        exit_on_error=False,
+    )
+    parser.add_argument("-pet", type=str, required=True,
                         help="Path to the input affine transformed PET scan")
-    parser.add_argument("-mri", "--mrif", type=str, required=False,
+    parser.add_argument("-mri", type=str, required=False,
                         help="Path to the input affine transformed MRI scan")
-    parser.add_argument("-s", "--subject", type=str, required=True,
+    parser.add_argument("-s", type=str, required=True,
                         help="Subject ID (e.g., 001_S_001)")
-    parser.add_argument("-d", "--scan_date", type=str, required=True,
+    parser.add_argument("-d", type=str, required=True,
                         help="Date of the scan (e.g., 2023-01-01)")
-    parser.add_argument("-m", "--modality", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FTP", "MK6240", "PI2620", "MRI-T1"], required=True,
+    parser.add_argument("-m", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FTP", "MK6240", "PI2620", "MRI-T1"], required=True,
                         help="Modality of the input scan (choices: %(choices)s)")
-    parser.add_argument("-v", "--SUVR", type=str, required=False,
+    parser.add_argument("-suvr", type=str, required=False,
                         help="Quantification in SUVR")
-    parser.add_argument("-cl", "--centiloid", type=float, required=False,
+    parser.add_argument("-cl", type=float, required=False,
                         help="Centiloid value for the scan")
-    parser.add_argument("-vr", "--visual_read", type=str, choices=["Elevated", "Non-elevated"], required=False,
+    parser.add_argument("-vr", type=str, choices=["Elevated", "Non-elevated"], required=False,
                         help="Visual read of the scan (choices: %(choices)s)")
-    parser.add_argument("-t", "--template_dir", type=str, default="templates/",
+    parser.add_argument("-t", type=str, default="templates/",
                         help="Path to the template directory for merging multislice images (default: %(default)s)")
-    parser.add_argument("-z", "--slices", type=int, nargs="+", default=[-50, -44, -38, -32, -26, -20, -14, -8, -2, 4, 10, 16, 22, 28, 34, 40],
+    parser.add_argument("-z", type=int, nargs="+", default=[-50, -44, -38, -32, -26, -20, -14, -8, -2, 4, 10, 16, 22, 28, 34, 40],
                         help="List of image slices to show along the z-axis (default: %(default)s)")
     parser.add_argument("--crop", default=True, action=argparse.BooleanOptionalAction,
                         help="Crop the multislice images to the brain")
@@ -82,15 +85,15 @@ if __name__ == "__main__":
     
     # Process the multislice images
     _, multislicef = niiplot.create_multislice(
-        petf=args.petf,
-        mrif=args.mrif,
-        subj=args.subject,
-        tracer=args.modality,
-        suvr=args.SUVR,
-        centiloid=args.centiloid,
-        visual_read=args.visual_read,
-        image_date=args.scan_date,
-        cut_coords=args.slices,
+        petf=args.pet,
+        mrif=args.mri,
+        subj=args.s,
+        tracer=args.m,
+        suvr=args.suvr,
+        centiloid=args.cl,
+        visual_read=args.vr,
+        image_date=args.d,
+        cut_coords=args.z,
         cmap=args.cmap,
         vmin=args.vmin,
         vmax=args.vmax,
@@ -106,8 +109,8 @@ if __name__ == "__main__":
 
     merged_multislicef = merge_multislice(
         infile=multislicef,
-        template_dir=args.template_dir,
-        tracer=args.modality,
+        template_dir=args.t,
+        tracer=args.m,
         remove_infile=False,
         overwrite=args.overwrite,
         verbose=verbose,
