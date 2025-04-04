@@ -9,8 +9,8 @@ from collections import OrderedDict as od
 import numpy as np
 import pandas as pd
 import nibabel as nib
-import general.osops.os_utils as osu
-import general.basic.str_methods as strm
+import utils.os_utils as osu
+import utils.str_methods as strm
 
 
 def load_nii(
