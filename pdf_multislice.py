@@ -23,7 +23,7 @@ def merge_multislice(infile, template_dir, tracer, remove_infile=False, overwrit
             print(f"Merged PDF already exists: {outfile}")
         return outfile
     templatef = op.join(template_dir, f"{tracer}_template.pdf")
-    cmd = f"qpdf --linearize --qdf --optimize-images --empty --pages {templatef} 1 {infile} 1 -- {outfile}"
+    cmd = f"qpdf --linearize --qdf --optimize-images --empty --pages {infile} 1 {templatef} 1 -- {outfile}"
     run_cmd(cmd)
     if verbose:
         print(f"Merged PDF: {outfile}")
@@ -40,7 +40,7 @@ def _parse_args():
         description="""Create PDF multislice for RoR.""",
         exit_on_error=False,
     )
-    parser.add_argument("-pet", type=str, required=True,
+    parser.add_argument("-pet", type=str, required=False,
                         help="Path to the input affine transformed PET scan")
     parser.add_argument("-mri", type=str, required=False,
                         help="Path to the input affine transformed MRI scan")
@@ -49,7 +49,7 @@ def _parse_args():
     parser.add_argument("-d", type=str, required=True,
                         help="Date of the scan (e.g., 2023-01-01)")
     parser.add_argument("-m", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FLUTE", "FTP", "MK6240", "PI2620", "MRI-T1"], required=True,
-                        help="Modality of the input scan (choices: %(choices)s)")
+                        help="Modality of the input scan (choices: %(choices)s). If using MRI as underlay, please only specify modality for PET")
     parser.add_argument("-suvr", type=str, required=False,
                         help="Quantification in SUVR")
     parser.add_argument("-cl", type=float, required=False,
@@ -75,6 +75,7 @@ def _parse_args():
                         help="Percentile for autoscaling vmax (default: %(default)s)")
     parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite existing files")
     parser.add_argument("-q", "--quiet", action="store_true", help="Run without printing output")
+    parser.add_argument("-savename", "--savename", type=str, help="Output file name")
     return parser.parse_args()
 
 # Main Script to run the functions
@@ -105,6 +106,7 @@ if __name__ == "__main__":
         crop_prop=args.crop_prop,
         overwrite=args.overwrite,
         verbose=verbose,
+        savename=args.savename,
     )
 
     merged_multislicef = merge_multislice(

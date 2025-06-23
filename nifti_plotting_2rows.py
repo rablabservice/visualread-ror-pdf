@@ -54,7 +54,7 @@ def create_multislice(
     fig=None,
     ax=None,
     save_fig=True,
-    outfile=None,
+    savename=None,
     overwrite=False,
     verbose=True,
     **kws,
@@ -182,7 +182,7 @@ def create_multislice(
     save_fig : bool, default : True
         If True, the figure is saved if overwrite is False or outfile
         doesn't already exist.
-    outfile : str, default : None
+    savename : str, default : None
         The path to the output file. If None, the output file is created
         automatically by appending '_multislice' to the input image
         filename.
@@ -198,23 +198,31 @@ def create_multislice(
     fig : matplotlib.figure.Figure
         The figure object.
     """
-    # Return the outfile if it already exists.
-    if outfile is None:
-        outfile = (
-            strm.add_presuf(petf, suffix="_multislice")
-            .replace(".nii.gz", ".pdf")
-            .replace(".nii", ".pdf")
-        )
-    if op.isfile(outfile) and not overwrite:
+    # Return the savename if it already exists.
+    if savename is None:
+        if petf is not None:
+            savename = (
+                strm.add_presuf(petf, suffix="_multislice")
+                .replace(".nii.gz", ".pdf")
+                .replace(".nii", ".pdf")
+            )
+        elif mrif is not None:
+            savename = (
+                strm.add_presuf(mrif, suffix="_multislice")
+                .replace(".nii.gz", ".pdf")
+                .replace(".nii", ".pdf")
+            )
+    if op.isfile(savename) and not overwrite:
         if verbose:
             print(
                 "  See existing multislice PDF:"
-                + "\n\t{}".format(op.dirname(outfile))
-                + "\n\t{}".format(op.basename(outfile))
+                + "\n\t{}".format(op.dirname(savename))
+                + "\n\t{}".format(op.basename(savename))
             )
-        return None, outfile
-    # Check that the image file exists.
-    nops.find_gzip(petf, raise_error=True)
+        return None, savename
+    if petf is not None:
+        # Check that the image file exists.
+        nops.find_gzip(petf, raise_error=True)
     if mrif is not None:
         nops.find_gzip(mrif, raise_error=True)
 
@@ -255,14 +263,15 @@ def create_multislice(
         fontcolor = "w"
 
     # Crop the data array.
-    pet, pet_dat = nops.load_nii(petf, **kws)
-    if crop:
-        if mask_thresh is None:
-            mask_thresh = vmin * 2
-        mask = pet_dat > mask_thresh
-        pet_dat = aop.crop_arr3d(pet_dat, mask, crop_prop)
-        pet = nib.Nifti1Image(pet_dat, pet.affine)
-        pet, *_ = nops.recenter_nii(pet)
+    if petf is not None:
+        pet, pet_dat = nops.load_nii(petf, **kws)
+        if crop:
+            if mask_thresh is None:
+                mask_thresh = vmin * 2
+            mask = pet_dat > mask_thresh
+            pet_dat = aop.crop_arr3d(pet_dat, mask, crop_prop)
+            pet = nib.Nifti1Image(pet_dat, pet.affine)
+            pet, *_ = nops.recenter_nii(pet)
     
     if mrif is not None:
         mri, mri_dat = nops.load_nii(mrif, **kws)
@@ -273,6 +282,8 @@ def create_multislice(
             mri_dat = aop.crop_arr3d(mri_dat, mask, crop_prop)
             mri = nib.Nifti1Image(mri_dat, mri.affine)
             mri, *_ = nops.recenter_nii(mri)
+        vmin_mri = np.percentile(mri_dat, 10)
+        vmax_mri = np.percentile(mri_dat, 90)
 
     # Define slice parameters before creating the figure.
     nrows = 2  
@@ -325,20 +336,21 @@ def create_multislice(
                 black_bg=False,
                 cmap="gray",
                 colorbar=False,  # Disable individual colorbars
-                vmin=autoscale_min_pct,
-                vmax=autoscale_max_pct,
+                #vmin=vmin_mri,
+                #vmax=vmax_mri,
                 title=None,
                 figure=fig,
                 axes=ax[row, col],  # Use the corresponding subplot
             )
-            display.add_overlay( # Add the PET overlay
-                pet,
-                threshold=0,
-                alpha=0.7,
-                cmap=cmap,
-                vmin=vmin,
-                vmax=vmax,
-            )
+            if petf is not None:
+                display.add_overlay( # Add the PET overlay
+                    pet,
+                    threshold=0,
+                    alpha=0.7,
+                    cmap=cmap,
+                    vmin=vmin,
+                    vmax=vmax,
+                )
         else:
             _ = plotting.plot_img(
                 pet,
@@ -372,7 +384,7 @@ def create_multislice(
 
     # ----------------------------------------------------------
     # Add the colorbar.
-    if colorbar:
+    if colorbar and petf is not None:
         norm = plt.Normalize(vmin=vmin, vmax=vmax)
         cbar = plt.colorbar(
             plt.cm.ScalarMappable(norm=norm, cmap=cmap),
@@ -479,7 +491,7 @@ def create_multislice(
     
     if save_fig:
         fig.savefig(
-            outfile,
+            savename,
             facecolor=facecolor,
             dpi=dpi,
             bbox_inches="tight",
@@ -488,13 +500,13 @@ def create_multislice(
         if verbose:
             print(
                 "  Saved new multislice PDF:"
-                + "\n\t{}".format(op.dirname(outfile))
-                + "\n\t{}".format(op.basename(outfile))
+                + "\n\t{}".format(op.dirname(savename))
+                + "\n\t{}".format(op.basename(savename))
             )
-    elif not op.isfile(outfile):
-        outfile = None
+    elif not op.isfile(savename):
+        savename = None
 
-    return fig, outfile
+    return fig, savename
 
 # Get the tracer defaults for colormap, vmin, vmax, etc.
 # based on the tracer name.
@@ -571,7 +583,7 @@ def get_tracer_defaults(
         if vmin is None:
             vmin = 0
         if vmax is None:
-            vmax = 4.5
+            vmax = 3.7
         if cmap is None:
             cmap = "avid"
         if facecolor is None:
