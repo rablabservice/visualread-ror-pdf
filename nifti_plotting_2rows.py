@@ -272,10 +272,26 @@ def create_multislice(
             pet_dat = aop.crop_arr3d(pet_dat, mask, crop_prop)
             pet = nib.Nifti1Image(pet_dat, pet.affine)
             pet, *_ = nops.recenter_nii(pet)
-    
+            pet_crop_params = {
+                "mask": mask,
+                "crop_prop": crop_prop,
+                "affine": pet.affine,
+                "recenter": True,
+            }
+        else:
+            pet_crop_params = None
+    else:
+        pet_crop_params = None
+
     if mrif is not None:
         mri, mri_dat = nops.load_nii(mrif, **kws)
-        if crop:    
+        if crop and pet_crop_params is not None:
+            # Apply the same crop and recenter parameters as PET
+            mri_dat = aop.crop_arr3d(mri_dat, pet_crop_params["mask"], pet_crop_params["crop_prop"])
+            mri = nib.Nifti1Image(mri_dat, pet_crop_params["affine"])
+            if pet_crop_params["recenter"]:
+                mri, *_ = nops.recenter_nii(mri)
+        elif crop:
             if mask_thresh is None:
                 mask_thresh = vmin * 2
             mask = mri_dat > mask_thresh
