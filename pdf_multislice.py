@@ -48,7 +48,7 @@ def _parse_args():
                         help="Subject ID (e.g., 001_S_001)")
     parser.add_argument("-d", type=str, required=True,
                         help="Date of the scan (e.g., 2023-01-01)")
-    parser.add_argument("-m", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FLUTE", "FTP", "MK6240", "PI2620", "MRI-T1"], required=True,
+    parser.add_argument("-m", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FLUTE", "FTP", "FDG", "MK6240", "PI2620", "MRI-T1"], required=True,
                         help="Modality of the input scan (choices: %(choices)s). If using MRI as underlay, please only specify modality for PET")
     parser.add_argument("-suvr", type=str, required=False,
                         help="Quantification in SUVR")
