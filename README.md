@@ -19,7 +19,7 @@ The PDF output is developed by the UCSF Visual Read Core and is a standard outpu
 - `-mri`                  Path to the input affine transformed MRI scan
 - `-s`                    Subject ID (e.g., 001_S_001)
 - `-d`                    Date of the scan (e.g., 2023-01-01)
-- `-m`                    Modality of the input scan (choices: FBB, FBP, NAV, PIB, FTP, MK6240, PI2620, MRI-T1)
+- `-m`                    Modality of the input scan (choices: FBB, FBP, NAV, PIB, FTP, FDG, MK6240, PI2620, MRI-T1)
 - `-suvr`                 Quantification in SUVR
 - `-cl`                   Centiloid value for the scan
 - `-vr`                   Visual read of the scan (choices: Elevated, Non-elevated)
