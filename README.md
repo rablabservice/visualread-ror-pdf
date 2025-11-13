@@ -28,14 +28,19 @@ The PDF output is developed by the UCSF Visual Read Core and is a standard outpu
 - `--crop, --no-crop`     Crop the multislice images to the brain (default: True)
 - `--mask_thresh`         Threshold for cropping empty voxels outside the brain (default: 0.05)
 - `--crop_prop`           Proportion of empty voxels allowed when cropping (default: 0.05)
-- `--cmap`                Colormap to use for the multislice images
-- `--vmin`                Minimum intensity threshold (default: 0)
-- `--vmax`                Maximum intensity threshold
+- `--cmap`                Colormap to use for the PET slices
+- `--cmap_mri`            Colormap to use for the MRI slices
+- `--vmin`                Minimum intensity threshold for PET (default: 0)
+- `--vmax`                Maximum intensity threshold for PET 
+- `--vmin_mri`            Minimum intensity threshold for MRI (defaultL 0)
+- `--vmax_mri`            Maximum intensity threshold for MRI
 - `--autoscale`           Autoscale vmax to a percentile of image values > 0
 - `--autoscale_max_pct`   Percentile for autoscaling vmax (default: 99.5)
+- `-alpha`                Alpha transperancy for PET overlay (0.0 to 1.0)
 - `-o`                    Overwrite existing files
 - `-q`                    Run without printing output
 - `-savename`             File save name
+- `--nomerge`             Do not merge multislice with template PDF
 
 ### Example run from the command line [assuming python is the call to local python version]
 #### Amyloid PET standard output with CL and visual read
