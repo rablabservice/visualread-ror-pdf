@@ -29,12 +29,16 @@ def create_multislice(
     display_mode="z",
     cut_coords=[-50, -44, -38, -32, -26, -20, -14, -8, -2, 4, 10, 16, 22, 28, 34, 40],
     cmap=None,
+    cmap_mri=None,
     colorbar=True,
     cbar_tick_format=".1f",
     n_cbar_ticks=5,
     cbar_label=None,
     vmin=0,
+    alpha=None,
     vmax=None,
+    vmin_mri=0,
+    vmax_mri=None,
     hide_cbar_values=False,
     autoscale=False,
     autoscale_values_gt0=True,
@@ -115,6 +119,10 @@ def create_multislice(
         The colormap to use. Either a string that is a name of a
         matplotlib colormap, or a matplotlib colormap object. "nih" as
         defined by mricron and "turbo" are also recognized.
+    cmap_mri : str, default: None
+        The colormap to use for the MRI image. Either a string that is a
+        name of a matplotlib colormap, or a matplotlib colormap object.
+        "gray" is recommended for MRI images.
     colorbar : bool, default : False
         If True, a colorbar is displayed below the image slices
         showing color mappings from vmin to vmax.
@@ -201,11 +209,18 @@ def create_multislice(
     # Return the savename if it already exists.
     if savename is None:
         if petf is not None:
-            savename = (
-                strm.add_presuf(petf, suffix="_multislice")
-                .replace(".nii.gz", ".pdf")
-                .replace(".nii", ".pdf")
-            )
+            if visual_read is not None:
+                savename = (
+                    strm.add_presuf(petf, suffix="_multislice")
+                    .replace(".nii.gz", ".pdf")
+                    .replace(".nii", ".pdf")
+                )
+            else:
+                savename = (
+                    strm.add_presuf(petf, suffix="_multislice_noread")
+                    .replace(".nii.gz", ".pdf")
+                    .replace(".nii", ".pdf")
+                )
         elif mrif is not None:
             savename = (
                 strm.add_presuf(mrif, suffix="_multislice")
@@ -257,7 +272,15 @@ def create_multislice(
         cmap = custom_colormaps.avid_cmap()
     elif cmap == "turbo":
         cmap = custom_colormaps.turbo_cmap()
-
+    if cmap == "neon_red":
+        cmap = custom_colormaps.neon_red()
+    if cmap_mri == "neon_red":
+        cmap_mri = custom_colormaps.neon_red()
+    if cmap == "neon_green":
+        cmap = custom_colormaps.neon_green()
+    if cmap_mri == "neon_green":
+        cmap_mri = custom_colormaps.neon_green()
+    
     if mrif is not None:
         facecolor = "k"
         fontcolor = "w"
@@ -298,8 +321,14 @@ def create_multislice(
             mri_dat = aop.crop_arr3d(mri_dat, mask, crop_prop)
             mri = nib.Nifti1Image(mri_dat, mri.affine)
             mri, *_ = nops.recenter_nii(mri)
-        vmin_mri = np.percentile(mri_dat, 10)
-        vmax_mri = np.percentile(mri_dat, 90)
+        if vmax_mri is None:
+            vmax_mri = np.percentile(mri_dat, 90)
+        if vmin_mri is None:
+            vmin_mri = np.percentile(mri_dat, 10)
+        if cmap_mri is None:
+            cmap_mri = "gray"
+        if alpha is None:
+            alpha = 0.7
 
     # Define slice parameters before creating the figure.
     nrows = 2  
@@ -350,10 +379,10 @@ def create_multislice(
                 annotate=False,
                 draw_cross=draw_cross,
                 black_bg=False,
-                cmap="gray",
+                cmap=cmap_mri,
                 colorbar=False,  # Disable individual colorbars
-                #vmin=vmin_mri,
-                #vmax=vmax_mri,
+                vmin=vmin_mri,
+                vmax=vmax_mri,
                 title=None,
                 figure=fig,
                 axes=ax[row, col],  # Use the corresponding subplot
@@ -362,7 +391,7 @@ def create_multislice(
                 display.add_overlay( # Add the PET overlay
                     pet,
                     threshold=0,
-                    alpha=0.7,
+                    alpha=alpha,
                     cmap=cmap,
                     vmin=vmin,
                     vmax=vmax,
@@ -445,9 +474,9 @@ def create_multislice(
     # -----------------------------------------------------------
     # Add the title.
     if title is None:
-        #title = op.basename(imagef) + "\n"
+        title = "\n"
         if subj:
-            title = f"Participant: {subj}\n"
+            title += f"Participant: {subj}\n"
         if image_date:
             title += f"Scan date: {image_date}\n"
         if tracer:
@@ -458,6 +487,11 @@ def create_multislice(
             elif tracer == 'ftp' or tracer == 'mk6240':
                 title += f"Temporal meta-ROI SUVR: {suvr}\n"
         if visual_read:
+            if tracer == 'ftp' or tracer == 'mk6240' or tracer == 'pi2620':
+                if visual_read == 'Elevated':
+                    visual_read = 'Elevated (AD pattern)'
+                elif visual_read == 'Non-elevated':
+                    visual_read = 'Non-elevated (AD pattern)'
             title += f"Expert visual read: {visual_read}\n"
         if centiloid:
             title += f"Centiloid: {centiloid}\n"  # Fixed indentation here
@@ -531,15 +565,15 @@ def get_tracer_defaults(
 ):
     """Set undefined plot parameters based on tracer."""
     tracer_labels = {
-        "fbb": "[18F]Florbetaben",
-        "fbp": "[18F]Florbetapir",
-        "nav": "[18F]NAV4694",
-        "pib": "[11C]PIB",
-        "ftp": "[18F]Flortaucipir",
+        "fbb": "[18F]Florbetaben (amyloid)",
+        "fbp": "[18F]Florbetapir (amyloid)",
+        "nav": "[18F]NAV4694 (amyloid)",
+        "pib": "[11C]PIB (amyloid)",
+        "ftp": "[18F]Flortaucipir (tau)",
         "fdg": "[18F]FDG",
-        "flute": "[18F]Flutemetamol",
-        "mk6240": "[18F]MK6240",
-        "pi2620": "[18F]PI2620",
+        "flute": "[18F]Flutemetamol (amyloid)",
+        "mk6240": "[18F]MK6240 (tau)",
+        "pi2620": "[18F]PI2620 (tau)",
     }
     if tracer is None:
         tracer = ""

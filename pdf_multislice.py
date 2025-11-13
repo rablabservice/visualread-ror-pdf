@@ -23,14 +23,15 @@ def merge_multislice(infile, template_dir, tracer, remove_infile=False, overwrit
             print(f"Merged PDF already exists: {outfile}")
         return outfile
     templatef = op.join(template_dir, f"{tracer}_template.pdf")
-    cmd = f"qpdf --linearize --qdf --optimize-images --empty --pages {infile} 1 {templatef} 1 -- {outfile}"
-    run_cmd(cmd)
-    if verbose:
-        print(f"Merged PDF: {outfile}")
-    if remove_infile:
-        os.remove(infile)
+    if op.isfile(templatef):
+        cmd = f"qpdf --linearize --qdf --optimize-images --empty --pages {infile} 1 {templatef} 1 -- {outfile}"
+        run_cmd(cmd)
         if verbose:
-            print(f"Removed {infile}")
+            print(f"Merged PDF: {outfile}")
+        if remove_infile:
+            os.remove(infile)
+            if verbose:
+                print(f"Removed {infile}")
     return outfile
 
 # Argument Parsing Function
@@ -44,9 +45,9 @@ def _parse_args():
                         help="Path to the input affine transformed PET scan")
     parser.add_argument("-mri", type=str, required=False,
                         help="Path to the input affine transformed MRI scan")
-    parser.add_argument("-s", type=str, required=True,
+    parser.add_argument("-s", type=str, required=False,
                         help="Subject ID (e.g., 001_S_001)")
-    parser.add_argument("-d", type=str, required=True,
+    parser.add_argument("-d", type=str, required=False,
                         help="Date of the scan (e.g., 2023-01-01)")
     parser.add_argument("-m", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FLUTE", "FTP", "FDG", "MK6240", "PI2620", "MRI-T1"], required=True,
                         help="Modality of the input scan (choices: %(choices)s). If using MRI as underlay, please only specify modality for PET")
@@ -66,16 +67,21 @@ def _parse_args():
                         help="Threshold for cropping empty voxels outside the brain (default: %(default)s)")
     parser.add_argument("--crop_prop", type=float, default=0.05,
                         help="Proportion of empty voxels allowed when cropping (default: %(default)s)")
-    parser.add_argument("--cmap", type=str, help="Colormap to use for the multislice images")
-    parser.add_argument("--vmin", type=float, default=0, help="Minimum intensity threshold (default: %(default)s)")
-    parser.add_argument("--vmax", type=float, help="Maximum intensity threshold")
+    parser.add_argument("--cmap", type=str, help="Colormap to use for PET multislice images")
+    parser.add_argument("--cmap_mri", type=str, help="Colormap to use for MRI multislice images")
+    parser.add_argument("--vmin", type=float, default=0, help="Minimum intensity threshold for PET (default: %(default)s)")
+    parser.add_argument("--vmax", type=float, help="Maximum intensity threshold for PET")
+    parser.add_argument("--vmin_mri", type=float, default=0, help="Minimum intensity threshold for MRI (default: %(default)s)")
+    parser.add_argument("--vmax_mri", type=float, help="Maximum intensity threshold for MRI")
     parser.add_argument("--autoscale", action="store_true",
                         help="Autoscale vmax to a percentile of image values > 0")
     parser.add_argument("--autoscale_max_pct", type=float, default=99.5,
                         help="Percentile for autoscaling vmax (default: %(default)s)")
+    parser.add_argument("-alpha", default = 0.7, type=float, help="Alpha transparency for PET overlay (0.0 to 1.0)")
     parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite existing files")
     parser.add_argument("-q", "--quiet", action="store_true", help="Run without printing output")
     parser.add_argument("-savename", "--savename", type=str, help="Output file name")
+    parser.add_argument("--nomerge", action="store_true", help="Do not merge multislice with template PDF")
     return parser.parse_args()
 
 # Main Script to run the functions
@@ -96,8 +102,12 @@ if __name__ == "__main__":
         image_date=args.d,
         cut_coords=args.z,
         cmap=args.cmap,
+        cmap_mri=args.cmap_mri,
+        vmin_mri=args.vmin_mri,
+        vmax_mri=args.vmax_mri,
         vmin=args.vmin,
         vmax=args.vmax,
+        alpha=args.alpha,
         hide_cbar_values=False,
         autoscale=args.autoscale,
         autoscale_max_pct=args.autoscale_max_pct,
@@ -109,11 +119,13 @@ if __name__ == "__main__":
         savename=args.savename,
     )
 
-    merged_multislicef = merge_multislice(
-        infile=multislicef,
-        template_dir=args.t,
-        tracer=args.m,
-        remove_infile=False,
-        overwrite=args.overwrite,
-        verbose=verbose,
-    )
+    # Merge with template if nomerge is not specified
+    if not args.nomerge:
+        merged_multislicef = merge_multislice(
+            infile=multislicef,
+            template_dir=args.t,
+            tracer=args.m,
+            remove_infile=False,
+            overwrite=args.overwrite,
+            verbose=verbose,
+        )
