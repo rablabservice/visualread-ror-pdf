@@ -22,7 +22,8 @@ The PDF output is developed by the UCSF Visual Read Core and is a standard outpu
 - `-m`                    Modality of the input scan (choices: FBB, FBP, NAV, PIB, FTP, FDG, MK6240, PI2620, MRI-T1)
 - `-suvr`                 Quantification in SUVR
 - `-cl`                   Centiloid value for the scan
-- `-vr`                   Visual read of the scan (choices: Elevated, Non-elevated)
+- `-vr`                   Visual read of the scan (choices: Elevated, Non-elevated; for tau PET only: Elevated, Non-elevated, MTL-only)
+- `--comments`            Comments to the visual read. May contain multiple sentences and words separated by commas and periods. No special charachters (', (, ), \, /) are allowed
 - `-t`                    Path to the template directory for merging multislice images (default: templates/)
 - `-z`                    List of image slices to show along the z-axis (default: [-50, -44, -38, -32, -26, -20, -14, -8, -2, 4, 10, 16, 22, 28, 34, 40])
 - `--crop, --no-crop`     Crop the multislice images to the brain (default: True)

@@ -10,6 +10,7 @@ import nibabel as nib
 from nilearn import plotting
 import utils.custom_colormaps as custom_colormaps
 from utils.helper_funcs import *
+import textwrap
 import utils.array_operations as aop
 import utils.str_methods as strm
 import utils.nifti_ops as nops
@@ -25,6 +26,7 @@ def create_multislice(
     suvr=None,
     centiloid=None,
     visual_read=None,
+    comments=None,
     title=None,
     display_mode="z",
     cut_coords=[-50, -44, -38, -32, -26, -20, -14, -8, -2, 4, 10, 16, 22, 28, 34, 40],
@@ -90,6 +92,10 @@ def create_multislice(
         and centilois is available, no SUVR value is displayed.
     centiloid : float, default : None
         Centiloid value tp display in the figure title.
+    visual_read : str, default : None
+        Expert visual read to display in the figure title.
+    comments : str, default : None
+        Additional comments to add to the figure title.
     title : str, optional
         The figure title. If provided no other title elements are added.
     display_mode : str, default : 'z'
@@ -135,9 +141,13 @@ def create_multislice(
         The colorbar label. If None, the code will try to infer this
         from the tracer name.
     vmin : float, default: 0
-        The minimum value of the colormap range.
+        The minimum value of the colormap range for PET image.
     vmax : float, default: None
-        The maximum value of the colormap range.
+        The maximum value of the colormap range for PET image.
+    vmin_mri : float, default: 0
+        The minimum value of the colormap range for MRI image.
+    vmax_mri : float, default: None
+        The maximum value of the colormap range for MRI image.
     hide_cbar_values : bool, default : False
         If True, the colorbar values are not displayed but are merely
         labeled from "min" to "max." Overrides n_cbar_ticks.
@@ -474,13 +484,13 @@ def create_multislice(
     # -----------------------------------------------------------
     # Add the title.
     if title is None:
-        title = "\n"
+        title = ""
         if subj:
             title += f"Participant: {subj}\n"
         if image_date:
             title += f"Scan date: {image_date}\n"
         if tracer:
-            title += f"Tracer: {tracer_fancy}\n\n"
+            title += f"Tracer: {tracer_fancy}\n"
         if suvr and not centiloid:
             if tracer == 'fbb' or tracer == 'fbp' or tracer == 'nav' or tracer == 'pib' or tracer == 'flute':
                 title += f"Amyloid cortical mask SUVR: {suvr}\n"
@@ -489,9 +499,11 @@ def create_multislice(
         if visual_read:
             if tracer == 'ftp' or tracer == 'mk6240' or tracer == 'pi2620':
                 if visual_read == 'Elevated':
-                    visual_read = 'Elevated (AD pattern)'
+                    visual_read = 'Elevated in Cortex'
                 elif visual_read == 'Non-elevated':
-                    visual_read = 'Non-elevated (AD pattern)'
+                    visual_read = 'Non-elevated'
+                elif visual_read == 'MTL-only':
+                    visual_read = 'Elevated in Medial Temporal Lobe Only'
             title += f"Expert visual read: {visual_read}\n"
         if centiloid:
             title += f"Centiloid: {centiloid}\n"  # Fixed indentation here
@@ -505,12 +517,43 @@ def create_multislice(
         loc="left",
         zorder=100,
     )
-    ax[0, 0].set_position([0.1, 0.63, 0.3, 0.1])
-    ax[0, 0].set_facecolor("none") 
+    ax[0, 0].set_position([0.1, 0.73, 0.3, 0.1])# second parameter is y-location
+    ax[0, 0].set_facecolor("none")
+
+    if title is not None and comments:
+        if comments is not None:
+            comments = f"Comments: {comments}"
+        # Estimate max characters per line based on figure width and font size so
+        # wrapped text does not exceed ~90% of the figure width.
+        pos = ax[0, 0].get_position()  # [left, bottom, width, height] in figure coords
+        fig_w_px = fig.get_size_inches()[0] * fig.dpi
+        # 90% of the full figure width in pixels
+        max_width_px = fig_w_px * 0.9
+        # approximate average character width in pixels:
+        # avg char width ≈ 0.6 * font_size_points * dpi / 72
+        comment_fs = max(8, font["title"] - 6)
+        char_w_px = 0.6 * comment_fs * (fig.dpi / 72.0)
+        max_chars = max(20, int(max_width_px / char_w_px))
+
+        wrapped = textwrap.fill(comments, width=max_chars)
+        comment_x = pos.get_points()[0][0]  # left edge of the title axis in figure coords
+        comment_y = pos.bounds[1] + pos.bounds[3] - 0.04
+
+        fig.text(
+            comment_x,
+            comment_y,
+            wrapped,
+            fontsize=comment_fs,
+            color=fontcolor,
+            ha="left",
+            va="bottom",
+            zorder=100,
+            wrap=True,
+        )
 
     # Add L/R text
     ax[0, 0].text(
-        x=0.08, y=0.68, s="L",
+        x=0.08, y=-0.30, s="L",
         fontsize=font["title"], color=fontcolor,
         #transform=ax.transAxes,  # Set the coordinate system (default is 'data')
         #horizontalalignment="center"
