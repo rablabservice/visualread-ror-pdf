@@ -505,7 +505,7 @@ def create_multislice(
                 elif visual_read == 'MTL-only':
                     visual_read = 'Elevated in Medial Temporal Lobe Only'
             title += f"Expert visual read: {visual_read}\n"
-        if centiloid:
+        if centiloid is not None:
             title += f"Centiloid: {centiloid}\n"  # Fixed indentation here
         if hide_cbar_values:
             title += "SUVR range: {:.1f}-{:.1f}".format(vmin, vmax)
