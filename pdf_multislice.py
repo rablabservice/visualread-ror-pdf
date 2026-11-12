@@ -49,13 +49,13 @@ def _parse_args():
                         help="Subject ID (e.g., 001_S_001)")
     parser.add_argument("-d", type=str, required=False,
                         help="Date of the scan (e.g., 2023-01-01)")
-    parser.add_argument("-m", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FLUTE", "FTP", "FDG", "MK6240", "PI2620", "MRI-T1"], required=True,
-                        help="Modality of the input scan (choices: %(choices)s). If using MRI as underlay, please only specify modality for PET")
+    parser.add_argument("-m", type=str, choices=["FBB", "FBP", "NAV", "PIB", "FLUTE", "FTP", "FDG", "MK6240", "PI2620", "STX", "MRI-T1", "stat"], required=True,
+                        help="Modality of the input scan (choices: %(choices)s). If using MRI as underlay, please only specify modality for PET. The option 'stat' is for statistical maps (e.g., z-score, t-score, or p-value maps) and will be treated as a PET scan.")
     parser.add_argument("-suvr", type=str, required=False,
                         help="Quantification in SUVR")
     parser.add_argument("-cl", type=float, required=False,
                         help="Centiloid value for the scan")
-    parser.add_argument("-vr", type=str, choices=["Elevated", "Non-elevated", "MTL-only"], required=False,
+    parser.add_argument("-vr", type=str, choices=["Elevated", "Non-elevated", "MTL-only", "Indeterminate"], required=False,
                         help="Visual read of the scan (choices: %(choices)s). Please note that for tau PET scans, there is also an option of 'MTL-only'")
     class _JoinAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
@@ -93,6 +93,7 @@ def _parse_args():
     parser.add_argument("-q", "--quiet", action="store_true", help="Run without printing output")
     parser.add_argument("-savename", "--savename", type=str, help="Output file name")
     parser.add_argument("--nomerge", action="store_true", help="Do not merge multislice with template PDF")
+    parser.add_argument("--additive", action="store_true", help="Use additive overlay mode for PET on MRI (like in mricron). Only works for RGB images, not for colormaps. If using colormaps, use alpha blending instead.")
     return parser.parse_args()
 
 # Main Script to run the functions
@@ -129,6 +130,7 @@ if __name__ == "__main__":
         overwrite=args.overwrite,
         verbose=verbose,
         savename=args.savename,
+        additive=args.additive
     )
 
     # Merge with template if nomerge is not specified

@@ -63,6 +63,7 @@ def create_multislice(
     savename=None,
     overwrite=False,
     verbose=True,
+    additive=False,
     **kws,
 ):
     """Create a multislice plot of image and return the saved file.
@@ -209,6 +210,8 @@ def create_multislice(
         exists.
     verbose : bool, default : True
         If True, print status messages.
+    additive : bool, default : False
+        If True, the overlay mode is additive as in mricron.
     **kws are passed to nifti_ops.load_nii()
 
     Returns
@@ -267,15 +270,32 @@ def create_multislice(
             vmax = np.percentile(dat, autoscale_max_pct)
 
     # Get tracer-specific plotting parameters.
-    tracer, tracer_fancy, vmin, vmax, cmap, facecolor, fontcolor = get_tracer_defaults(
-        tracer,
-        petf,
-        vmin=vmin,
-        vmax=vmax,
-        cmap=cmap,
-        facecolor=facecolor,
-        fontcolor=fontcolor,
-    )
+    if tracer != "stat":
+        tracer, tracer_fancy, vmin, vmax, cmap, facecolor, fontcolor = get_tracer_defaults(
+            tracer,
+            petf,
+            vmin=vmin,
+            vmax=vmax,
+            cmap=cmap,
+            facecolor=facecolor,
+            fontcolor=fontcolor,
+        )
+    else:
+        tracer_fancy = "Statistical map"
+        img, dat = nops.load_nii(petf, **kws)
+        if vmin is None:
+            vmin = 0.3
+        if vmax is None:
+            vmax = np.percentile(dat, 99.9)+0.5
+            if vmax < 1:
+                vmax = 1
+        if cmap is None:
+            cmap = "nih"
+        if facecolor is None:
+            facecolor = "k"
+        if fontcolor is None:
+            fontcolor = "w"
+
     if cmap == "nih":
         cmap = custom_colormaps.nih_cmap()
     elif cmap == "avid":
@@ -332,9 +352,9 @@ def create_multislice(
             mri = nib.Nifti1Image(mri_dat, mri.affine)
             mri, *_ = nops.recenter_nii(mri)
         if vmax_mri is None:
-            vmax_mri = np.percentile(mri_dat, 90)
+            vmax_mri = np.percentile(mri_dat, 99.5)
         if vmin_mri is None:
-            vmin_mri = np.percentile(mri_dat, 10)
+            vmin_mri = np.percentile(mri_dat, 0.5)
         if cmap_mri is None:
             cmap_mri = "gray"
         if alpha is None:
@@ -377,11 +397,53 @@ def create_multislice(
     # Call the plotting function for each slice.
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=DeprecationWarning)
+
     for i, coord in enumerate(cut_coords):  # Loop through all slices
         row = i // ncols
-        col = i % ncols
-        
-        if mrif is not None:
+        col = i % ncols 
+
+        if additive:
+            colorbar = False   
+            display = plotting.plot_img(
+                mri,
+                cut_coords=[coord],
+                display_mode=display_mode,
+                annotate=False,
+                draw_cross=draw_cross,
+                black_bg=False,
+                cmap=cmap_mri,
+                colorbar=False,
+                vmin=vmin_mri,
+                vmax=vmax_mri,
+                title=None,
+                figure=fig,
+                axes=ax[row, col],
+            )
+            cutax = next(iter(display.axes.values()))
+
+            # Nilearn performs the same slicing/orientation it used for the MRI
+            mri_2d = cutax.transform_to_2d(mri.get_fdata(), mri.affine)
+            pet_2d = cutax.transform_to_2d(pet.get_fdata(), pet.affine)
+
+            # Now RGB is genuinely 2D
+            rgb = np.zeros(mri_2d.shape + (3,), dtype=float)
+            rgb[..., 1] = np.clip(pet_2d / 3, 0, 1)  # red
+            rgb[..., 0] = np.clip(mri_2d / 2.5, 0, 1)  # green
+            rgb = np.fliplr(rgb)
+
+            # Use exactly the same extent/origin as Nilearn's image
+            nii_im = cutax.ax.images[0]
+            extent = nii_im.get_extent()
+            origin = nii_im.origin
+
+            cutax.ax.imshow(
+                rgb,
+                extent=extent,
+                origin=origin,
+                interpolation="nearest",
+            )
+
+        elif mrif is not None:
             display = plotting.plot_img(
                 mri,
                 cut_coords=[coord],  # Plot each slice individually
@@ -617,6 +679,7 @@ def get_tracer_defaults(
         "flute": "[18F]Flutemetamol (amyloid)",
         "mk6240": "[18F]MK6240 (tau)",
         "pi2620": "[18F]PI2620 (tau)",
+        "stx": "[18F]STX-TP1 (tau)",
     }
     if tracer is None:
         tracer = ""
@@ -721,6 +784,17 @@ def get_tracer_defaults(
             vmin = 0
         if vmax is None:
             vmax = 4.5
+        if cmap is None:
+            cmap = "nih"
+        if facecolor is None:
+            facecolor = "k"
+        if fontcolor is None:
+            fontcolor = "w"
+    elif tracer == "stx":
+        if vmin is None:
+            vmin = 0
+        if vmax is None:
+            vmax = 2.5
         if cmap is None:
             cmap = "nih"
         if facecolor is None:
