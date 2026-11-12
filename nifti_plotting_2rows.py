@@ -554,7 +554,7 @@ def create_multislice(
         if tracer:
             title += f"Tracer: {tracer_fancy}\n"
         if suvr and not centiloid:
-            if tracer == 'fbb' or tracer == 'fbp' or tracer == 'nav' or tracer == 'pib' or tracer == 'flute':
+            if tracer == 'fbb' or tracer == 'fbp' or tracer == 'nav' or tracer == 'pib' or tracer == 'fmm':
                 title += f"Amyloid cortical mask SUVR: {suvr}\n"
             elif tracer == 'ftp' or tracer == 'mk6240':
                 title += f"Temporal meta-ROI SUVR: {suvr}\n"
@@ -676,7 +676,7 @@ def get_tracer_defaults(
         "pib": "[11C]PIB (amyloid)",
         "ftp": "[18F]Flortaucipir (tau)",
         "fdg": "[18F]FDG",
-        "flute": "[18F]Flutemetamol (amyloid)",
+        "fmm": "[18F]Flutemetamol (amyloid)",
         "mk6240": "[18F]MK6240 (tau)",
         "pi2620": "[18F]PI2620 (tau)",
         "stx": "[18F]STX-TP1 (tau)",
@@ -768,7 +768,7 @@ def get_tracer_defaults(
             facecolor = "k"
         if fontcolor is None:
             fontcolor = "w"
-    elif tracer == "flute":
+    elif tracer == "fmm":
         if vmin is None:
             vmin = 0
         if vmax is None:
