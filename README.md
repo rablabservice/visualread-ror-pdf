@@ -19,7 +19,7 @@ The PDF output is developed by the UCSF Visual Read Core and is a standard outpu
 - `-mri`                  Path to the input affine transformed MRI scan
 - `-s`                    Subject ID (e.g., 001_S_001)
 - `-d`                    Date of the scan (e.g., 2023-01-01)
-- `-m`                    Modality of the input scan (choices: FBB, FBP, NAV, PIB, FLUTE, FTP, FDG, MK6240, PI2620, STX, MRI-T1, stat). If using MRI as underlay, please only specify modality for PET. The option 'stat' is for statistical maps (e.g., z-score, t-score, or p-value maps) and will be treated as a PET scan.
+- `-m`                    Modality of the input scan (choices: FBB, FBP, NAV, PIB, FMM, FTP, FDG, MK6240, PI2620, STX, MRI-T1, stat). If using MRI as underlay, please only specify modality for PET. The option 'stat' is for statistical maps (e.g., z-score, t-score, or p-value maps) and will be treated as a PET scan.
 - `-suvr`                 Quantification in SUVR
 - `-cl`                   Centiloid value for the scan
 - `-vr`                   Visual read of the scan (choices: Elevated, Non-elevated, Indeterminate; for tau PET only: Elevated, Non-elevated, MTL-only, Indeterminate)
