@@ -222,18 +222,11 @@ def create_multislice(
     # Return the savename if it already exists.
     if savename is None:
         if petf is not None:
-            if visual_read is not None:
-                savename = (
-                    strm.add_presuf(petf, suffix="_multislice")
-                    .replace(".nii.gz", ".pdf")
-                    .replace(".nii", ".pdf")
-                )
-            else:
-                savename = (
-                    strm.add_presuf(petf, suffix="_multislice_noread")
-                    .replace(".nii.gz", ".pdf")
-                    .replace(".nii", ".pdf")
-                )
+            savename = (
+                strm.add_presuf(petf, suffix="_multislice")
+                .replace(".nii.gz", ".pdf")
+                .replace(".nii", ".pdf")
+            )
         elif mrif is not None:
             savename = (
                 strm.add_presuf(mrif, suffix="_multislice")
